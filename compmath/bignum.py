@@ -61,8 +61,7 @@ class bn:
         if carry > 0: result.append(carry)
         return bn(result)
 
-
-    def __sub__(self,other):
+    def sub_s(self,other):
         result = []
         borrow = 0 
         m_len = max(self.length, other.length)
@@ -76,6 +75,10 @@ class bn:
             else:
                 result.append(tmp + self.base)
                 borrow = 1 
+        return result, borrow
+
+    def __sub__(self,other):
+        result,borrow = self.sub_s(other)
         if borrow != 0: 
             sign = -1
             result = other.__sub__(self)
@@ -83,3 +86,22 @@ class bn:
             return result
         else: 
             return bn(result)
+
+    def __gt__(self,other):
+        _,borrow = self.sub_s(other)
+        if borrow != 0:
+            return False
+        else:
+            return True
+    def __lt__(self,other):
+        _,borrow = other.sub_s(self)
+        if borrow != 0:
+            return False
+        else:
+            return True
+    
+    def __eq__(self,other):
+        if self.number == other.number:
+            return True
+        else: 
+            return False

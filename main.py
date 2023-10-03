@@ -23,6 +23,11 @@ def main() -> None:
     D_ = TEST_NUMBER_A - TEST_NUMBER_B
     d_ = bn(D_)
     print(D.base10() == D_)
-    
+    print((TEST_NUMBER_B > TEST_NUMBER_A) == (B > A))
+    print((TEST_NUMBER_B < TEST_NUMBER_A) == (B < A))
+    print((TEST_NUMBER_B == TEST_NUMBER_A) == (B == A))
+    print((TEST_NUMBER_A == TEST_NUMBER_A) == (A == A))
+
+
 if __name__ == "__main__":
     main()
