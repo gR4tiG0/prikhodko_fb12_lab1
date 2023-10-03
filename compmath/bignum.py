@@ -7,10 +7,11 @@ HEX_DIGITS = "0123456789ABCDEF"
 class bn:
     """init class for operations with large numbers"""
 
-    def __init__(self,number):
+    def __init__(self,number,sign=0):
         self.Bp = BASE_POWER 
         self.base = BASE ** BASE_POWER
-        digits,sign = convert(number,self.base)
+        if sign != 0: digits,_ = convert(number,self.base)
+        else: digits,sign = convert(number,self.base)
         self.number = digits
         self.sign = sign
         self.length = len(self.number)
@@ -45,3 +46,40 @@ class bn:
             res_t = "0"*rem + res_t
             res = res_t + res
         return res if self.sign == 1 else "-" + res
+
+
+    def __add__(self,other):
+        result = []
+        carry = 0 
+        m_len = max(self.length, other.length)
+        for i in range(m_len):
+            a_d = self.number[i] if i < len(self.number) else 0 
+            b_d = other.number[i] if i < len(other.number) else 0 
+            tmp = a_d + b_d + carry 
+            carry = tmp // self.base        
+            result.append(tmp % self.base)
+        if carry > 0: result.append(carry)
+        return bn(result)
+
+
+    def __sub__(self,other):
+        result = []
+        borrow = 0 
+        m_len = max(self.length, other.length)
+        for i in range(m_len):
+            a_d = self.number[i] if i < len(self.number) else 0 
+            b_d = other.number[i] if i < len(other.number) else 0 
+            tmp = a_d - b_d - borrow 
+            if tmp >= 0:
+                result.append(tmp)
+                borrow = 0 
+            else:
+                result.append(tmp + self.base)
+                borrow = 1 
+        if borrow != 0: 
+            sign = -1
+            result = other.__sub__(self)
+            result.sign = sign 
+            return result
+        else: 
+            return bn(result)
