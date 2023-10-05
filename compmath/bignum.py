@@ -166,7 +166,7 @@ class bn:
             # result = result + bn(tmp)
 
         #karatsuba variant
-        result = self.karatsuba(self,other)
+        result = self.karatsuba(other)
         return result
     
     def karatsubaStep(self,a,b):
@@ -202,15 +202,59 @@ class bn:
     
     def bitLength(self,number):
         return len(number.baseN(2))
+    
+    def shiftBitsL(self,number,n):
+        number_ = number.baseN(2)
+        number_ = "0"*(self.Bp - (n%self.Bp)) + number_ + n*"0"
+        assert len(number_) % 64 == 0 
+        digits = [int(number_[i:i+64],2) for i in range(0,len(number_),64)]
+        digits.reverse()
+        if set(digits) == {0}: digits = [0]
+        return bn(digits)
+
+    def shiftBitsH(self,number,n):
+        number_ = number.baseN(2)
+        number_ =  "0"*n + number_[:-n] 
+        assert len(number_) % 64 == 0 
+        digits = [int(number_[i:i+64],2) for i in range(0,len(number_),64)]
+        digits.reverse()
+        if set(digits) == {0}: digits = [0]
+        return bn(digits)
+
 
     def divMod(self,other):
-        k = self.bitLength(other)
-        R = bn(self.number,self.sign)
-        Q = 0 
+        if other.number == [0]:
+            return None
+        elif self == other:
+            return 1
+        elif self < other:
+            return 0, self
+        else:
+            B = bn(self.number)
+            A = bn(other.number)
+            c = 1 
+            while A <= B:
+                A = self.shiftBitsL(A,1)
+                c = c << 1
+            c = c >> 1
+            res = bn(0)
+            A = self.shiftBitsH(A,1)
+            c = bn(c)
+            while not (c == bn(0)):
+                if B >= A:
+                    B = B - A
+                    res = res + c
+                c = self.shiftBitsH(c,1)
+                A = self.shiftBitsH(A,1)
+            return res,B
 
 
     def __truediv__(self,other):
-        self.divMod(other)
+        return self.divMod(other)[0]
+
+
+    def __mod__(self,other):
+        return self.divMod(other)[1]
 
 
 
