@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from compmath.bignum import *
 from Crypto.Random.random import getrandbits
-BITS = 128
+BITS = 2048
 
 BASE_POWER = 16
 TEST_NUMBER_A = getrandbits(BITS)
@@ -31,5 +31,6 @@ def main() -> None:
     D = A * B 
     print(D.base10() == TEST_NUMBER_A*TEST_NUMBER_B)
     print(A.karatsuba(B).base10() == TEST_NUMBER_A*TEST_NUMBER_B)
+    print((A**2).base10() == TEST_NUMBER_A**2)
 if __name__ == "__main__":
     main()

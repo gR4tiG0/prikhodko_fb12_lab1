@@ -112,19 +112,31 @@ class bn:
         else: 
             return bn(result)
 
-    def __gt__(self,other):
+    def __ge__(self,other):
         _,borrow = self.sub_s(other)
         if borrow != 0:
             return False
         else:
             return True
-    def __lt__(self,other):
+    def __le__(self,other):
         _,borrow = other.sub_s(self)
         if borrow != 0:
             return False
         else:
             return True
-    
+    def __gt__(self,other):
+        _,borrow = self.sub_s(other)
+        if borrow != 0 or self.__eq__(other):
+            return False
+        else:
+            return True
+    def __lt__(self,other):
+        _,borrow = other.sub_s(self)
+        if borrow != 0 or self.__eq__(other):
+            return False
+        else:
+            return True
+
     def __eq__(self,other):
         if self.number == other.number:
             return True
@@ -146,11 +158,15 @@ class bn:
 
 
     def __mul__(self, other):
-        result = bn(0)
-        for c,b_d in enumerate(other.number):
-            tmp = self.mulStep(b_d)
-            tmp = self.shiftLeft(tmp,c)
-            result = result + bn(tmp)
+        #default multiplication
+        # result = bn(0)
+        # for c,b_d in enumerate(other.number):
+            # tmp = self.mulStep(b_d)
+            # tmp = self.shiftLeft(tmp,c)
+            # result = result + bn(tmp)
+
+        #karatsuba variant
+        result = self.karatsuba(self,other)
         return result
     
     def karatsubaStep(self,a,b):
@@ -180,11 +196,21 @@ class bn:
 
     def __pow__(self,power):
         if power == 2:
-            return self.__mul__(self)
+            return self.karatsubaStep(self,self)
         else:
             return None
+    
+    def bitLength(self,number):
+        return len(number.baseN(2))
+
+    def divMod(self,other):
+        k = self.bitLength(other)
+        R = bn(self.number,self.sign)
+        Q = 0 
 
 
+    def __truediv__(self,other):
+        self.divMod(other)
 
 
 
