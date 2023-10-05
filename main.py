@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 from compmath.bignum import *
 from Crypto.Random.random import getrandbits
-BITS = 2048 
+BITS = 128
 
 BASE_POWER = 16
-TEST_NUMBER_A = getrandbits(2048)
-TEST_NUMBER_B = getrandbits(2048)
+TEST_NUMBER_A = getrandbits(BITS)
+TEST_NUMBER_B = getrandbits(BITS)
 
 e_ = "[!]"
 d_ = "[*]"
@@ -27,7 +27,9 @@ def main() -> None:
     print((TEST_NUMBER_B < TEST_NUMBER_A) == (B < A))
     print((TEST_NUMBER_B == TEST_NUMBER_A) == (B == A))
     print((TEST_NUMBER_A == TEST_NUMBER_A) == (A == A))
-
-
+    print("-"*60)
+    D = A * B 
+    print(D.base10() == TEST_NUMBER_A*TEST_NUMBER_B)
+    print(A.karatsuba(B).base10() == TEST_NUMBER_A*TEST_NUMBER_B)
 if __name__ == "__main__":
     main()

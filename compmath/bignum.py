@@ -49,6 +49,16 @@ class bn:
 
 
     def __add__(self,other):
+        sign = 1
+        if self.sign == -1:
+            if other.sign == -1:
+                sign = -1
+            else:
+                a = bn(self.number)
+                return other.__sub__(a)
+        elif other.sign == -1:
+            a = bn(other.number)
+            return self.__sub__(a)
         result = []
         carry = 0 
         m_len = max(self.length, other.length)
@@ -59,7 +69,9 @@ class bn:
             carry = tmp // self.base        
             result.append(tmp % self.base)
         if carry > 0: result.append(carry)
-        return bn(result)
+        result = bn(result)
+        result.sign = sign
+        return result
 
     def sub_s(self,other):
         result = []
@@ -78,6 +90,19 @@ class bn:
         return result, borrow
 
     def __sub__(self,other):
+        if self.sign == -1:
+            if other.sign == -1:
+                a = bn(self.number)
+                b = bn(other.number)
+                return b.__sub__(a)
+            else:
+                a = bn(self.number)
+                res = a.__add__(other)
+                res.sign = -1
+                return res
+        elif other.sign == -1:
+            a = bn(other.number)
+            return self.__add__(a)
         result,borrow = self.sub_s(other)
         if borrow != 0: 
             sign = -1
@@ -105,3 +130,67 @@ class bn:
             return True
         else: 
             return False
+    
+    def mulStep(self, number):
+        carry = 0
+        result = []
+        for a_d in self.number:
+            tmp = a_d * number + carry
+            result.append(tmp & (self.base - 1))
+            carry = tmp >> self.Bp 
+        result.append(carry)
+        return result
+
+    def shiftLeft(self, number, t):
+        return [0]*t + number
+
+
+    def __mul__(self, other):
+        result = bn(0)
+        for c,b_d in enumerate(other.number):
+            tmp = self.mulStep(b_d)
+            tmp = self.shiftLeft(tmp,c)
+            result = result + bn(tmp)
+        return result
+    
+    def karatsubaStep(self,a,b):
+        if a.length == 1 or b.length == 1:
+            return bn(a.number[0] * b.number[0])
+        else:
+            n = max(a.length,b.length)
+            m = n // 2
+            a = a.number 
+            b = b.number
+            a_l,a_h = bn(a[:m]),bn(a[m:])
+            b_l,b_h = bn(b[:m]),bn(b[m:])
+            z0 = self.karatsubaStep(a_h,b_h)
+            z2 = self.karatsubaStep(a_l,b_l)
+            z1 = self.karatsubaStep(a_l,b_h) + self.karatsubaStep(a_h,b_l)
+            z0_f = bn(self.shiftLeft(z0.number,n))
+            z1_f = bn(self.shiftLeft(z1.number,m))
+
+            z = z0_f + z1_f + z2
+            return z
+
+
+
+    def karatsuba(self,other):
+        result = self.karatsubaStep(self,other)
+        return result
+
+    def __pow__(self,power):
+        if power == 2:
+            return self.__mul__(self)
+        else:
+            return None
+
+
+
+
+
+
+
+
+
+
+
