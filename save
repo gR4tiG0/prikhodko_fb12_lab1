@@ -1,0 +1,20 @@
+    def shiftBitsL(self,number,n):
+        number_ = number.baseN(2)
+        print(','.join([number_[i:i+64] for i in range(0,len(number_),64)]))
+        number_ = "0"*(self.Bp - (n%self.Bp)) + number_ + n*"0"
+        print(','.join([number_[i:i+64] for i in range(0,len(number_),64)]))
+        assert len(number_) % 64 == 0 
+        digits = [int(number_[i:i+64],2) for i in range(0,len(number_),64)]
+        digits.reverse()
+        if set(digits) == {0}: digits = [0]
+        return bn(digits)
+
+    def shiftBitsH(self,number,n):
+        number_ = number.baseN(2)
+        number_ =  "0"*n + number_[:-n] 
+        assert len(number_) % 64 == 0 
+        digits = [int(number_[i:i+64],2) for i in range(0,len(number_),64)]
+        digits.reverse()
+        if set(digits) == {0}: digits = [0]
+        return bn(digits)
+

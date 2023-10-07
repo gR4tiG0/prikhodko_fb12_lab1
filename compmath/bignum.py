@@ -153,8 +153,7 @@ class bn:
         result.append(carry)
         return result
 
-    def shiftLeft(self, number, t):
-        return [0]*t + number
+    
 
 
     def __mul__(self, other):
@@ -166,61 +165,21 @@ class bn:
             # result = result + bn(tmp)
 
         #karatsuba variant
-        result = self.karatsuba(other)
+        result = karatsubaStep(self, other)
         return result
     
-    def karatsubaStep(self,a,b):
-        if a.length == 1 or b.length == 1:
-            return bn(a.number[0] * b.number[0])
-        else:
-            n = max(a.length,b.length)
-            m = n // 2
-            a = a.number 
-            b = b.number
-            a_l,a_h = bn(a[:m]),bn(a[m:])
-            b_l,b_h = bn(b[:m]),bn(b[m:])
-            z0 = self.karatsubaStep(a_h,b_h)
-            z2 = self.karatsubaStep(a_l,b_l)
-            z1 = self.karatsubaStep(a_l,b_h) + self.karatsubaStep(a_h,b_l)
-            z0_f = bn(self.shiftLeft(z0.number,n))
-            z1_f = bn(self.shiftLeft(z1.number,m))
-
-            z = z0_f + z1_f + z2
-            return z
 
 
-
-    def karatsuba(self,other):
-        result = self.karatsubaStep(self,other)
-        return result
 
     def __pow__(self,power):
         if power == 2:
-            return self.karatsubaStep(self,self)
+            return karatsubaStep(self,self)
         else:
             return None
     
     def bitLength(self,number):
         return len(number.baseN(2))
     
-    def shiftBitsL(self,number,n):
-        number_ = number.baseN(2)
-        number_ = "0"*(self.Bp - (n%self.Bp)) + number_ + n*"0"
-        assert len(number_) % 64 == 0 
-        digits = [int(number_[i:i+64],2) for i in range(0,len(number_),64)]
-        digits.reverse()
-        if set(digits) == {0}: digits = [0]
-        return bn(digits)
-
-    def shiftBitsH(self,number,n):
-        number_ = number.baseN(2)
-        number_ =  "0"*n + number_[:-n] 
-        assert len(number_) % 64 == 0 
-        digits = [int(number_[i:i+64],2) for i in range(0,len(number_),64)]
-        digits.reverse()
-        if set(digits) == {0}: digits = [0]
-        return bn(digits)
-
 
     def divMod(self,other):
         if other.number == [0]:
@@ -233,19 +192,19 @@ class bn:
             B = bn(self.number)
             A = bn(other.number)
             c = 1 
-            while A <= B:
-                A = self.shiftBitsL(A,1)
+            while A.base10() <= B.base10():
+                A.lshift(1)
                 c = c << 1
             c = c >> 1
             res = bn(0)
-            A = self.shiftBitsH(A,1)
+            A.rshift(1)
             c = bn(c)
             while not (c == bn(0)):
-                if B >= A:
+                if B.base10() >= A.base10():
                     B = B - A
                     res = res + c
-                c = self.shiftBitsH(c,1)
-                A = self.shiftBitsH(A,1)
+                c.rshift(1)
+                A.rshift(1)
             return res,B
 
 
@@ -257,10 +216,72 @@ class bn:
         return self.divMod(other)[1]
 
 
+    def lshift(self,bits):
+        lshiftBits(self,bits)
+    
+
+    def rshift(self, bits):
+        rshiftBits(self,bits)
 
 
+def karatsubaStep(a,b):
+    if a.length == 1 or b.length == 1:
+        return bn(a.number[0] * b.number[0])
+    else:
+        n = max(a.length,b.length)
+        m = n // 2
+        a = a.number 
+        b = b.number
+        a_l,a_h = bn(a[:m]),bn(a[m:])
+        b_l,b_h = bn(b[:m]),bn(b[m:])
+        z0 = karatsubaStep(a_h,b_h)
+        z2 = karatsubaStep(a_l,b_l)
+        z1 = karatsubaStep(a_l,b_h) + karatsubaStep(a_h,b_l)
+        z0_f = bn(shiftLeft(z0.number,n))
+        z1_f = bn(shiftLeft(z1.number,m))
 
+        z = z0_f + z1_f + z2
+        return z
+    
+def shiftLeft( number, t):
+    return [0]*t + number
 
+def shiftRight(number,t):
+    return number[t:]
 
+def lshiftBits(num,bits):
+    word = num.Bp 
+    b_words = bits // word 
+    b_shift = bits % word
+    if b_words != 0:
+        num.number = [0]*b_words + num.number
+        num.length += b_words
+    if b_shift != 0:
+        result = num.number + [0]
+        num.length += 1
+        for i in range(num.length-1,0,-1):
+            curr = (result[i] << b_shift) & ((1 << (64)) - 1)
+            result[i] = curr | (result[i-1] >> (word - b_shift))
+        result[0] = (result[0] << b_shift) & ((1 << (word)) - 1)
+        if set(result) == {0}: result = [0]
+        num.number = result
+        num.length = len(result)
 
+def rshiftBits(num, bits):
+    word = num.Bp
+    b_words = bits // word
+    b_shift = bits % word
+    if b_words != 0:
+        num.number = num.number[b_words:] + [0]*b_words
+        if num.number == []: num.number = [0]
+        # num.length -= b_words
 
+    if b_shift != 0:
+        result = num.number
+        for i in range(num.length-1):
+            prev = result[i+1] & ((1 << b_shift) - 1)
+            result[i] = (result[i] >> b_shift) | (prev << (word - b_shift))
+        result[-1] = result[-1] >> b_shift
+        if set(result) == {0}: result = [0]
+        num.number = result
+        num.length = len(result)

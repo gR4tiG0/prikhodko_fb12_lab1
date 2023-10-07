@@ -30,10 +30,10 @@ def main() -> None:
     print("-"*60)
     D = A * B 
     print(D.base10() == TEST_NUMBER_A*TEST_NUMBER_B)
-    print(A.karatsuba(B).base10() == TEST_NUMBER_A*TEST_NUMBER_B)
+    print((A * B).base10() == TEST_NUMBER_A*TEST_NUMBER_B)
     print((A**2).base10() == TEST_NUMBER_A**2)
     print("-"*60)
-    a,b = getrandbits(BITS//2),getrandbits(BITS//16)
+    a,b = getrandbits(BITS),getrandbits(BITS//2)
     a_,b_ = bn(a),bn(b)
     print((a_ / b_).base10() == a//b) 
     print((a_ % b_).base10() == a%b)
