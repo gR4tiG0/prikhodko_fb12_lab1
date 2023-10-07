@@ -160,22 +160,44 @@ class bn:
         #default multiplication
         # result = bn(0)
         # for c,b_d in enumerate(other.number):
-            # tmp = self.mulStep(b_d)
-            # tmp = self.shiftLeft(tmp,c)
-            # result = result + bn(tmp)
+        #     tmp = self.mulStep(b_d)
+        #     tmp = shiftLeft(tmp,c)
+        #     result = result + bn(tmp)
 
         #karatsuba variant
-        result = karatsubaStep(self, other)
+        n = max(self.length,other.length)
+        if n%2 != 0: n += 1
+        a = bn(self.number + [0]*(n-self.length))
+        b = bn(other.number + [0]*(n-other.length))
+        #print(a)
+        #print(b)
+        result = karatsubaStep(a,b)
         return result
     
 
 
 
     def __pow__(self,power):
-        if power == 2:
-            return karatsubaStep(self,self)
+        if power == bn(0):
+            return bn(1)
+        elif power == bn(1):
+            return self
+        elif power == bn(2):
+            return self.__mul__(self)
         else:
-            return None
+            A,B,C = bn(self.number),bn(power.number),bn(1)
+            D = [A]
+            b_2 = B.baseN(2)
+            b_2 = b_2[b_2.find('1'):]
+            #print(b_2)
+            for i in range(1,len(b_2),1):
+                #print(f"prev: {D[i-1].base10()}")
+                D.append(D[i-1] * D[i-1])
+            #for i in D: print(i.base10())
+            for c,i in enumerate(b_2[::-1]):
+                if i == '1': 
+                    C = C * D[c]
+            return C
     
     def bitLength(self,number):
         return len(number.baseN(2))
@@ -225,10 +247,17 @@ class bn:
 
 
 def karatsubaStep(a,b):
+    #print(a.base10())
     if a.length == 1 or b.length == 1:
-        return bn(a.number[0] * b.number[0])
+        result = bn(0)
+        for c,b_d in enumerate(b.number):
+            tmp = a.mulStep(b_d)
+            tmp = shiftLeft(tmp,c)
+            result = result + bn(tmp)
+        return result
     else:
         n = max(a.length,b.length)
+        #print(a.length,b.length,n)
         m = n // 2
         a = a.number 
         b = b.number
@@ -241,8 +270,7 @@ def karatsubaStep(a,b):
         z1_f = bn(shiftLeft(z1.number,m))
 
         z = z0_f + z1_f + z2
-        return z
-    
+        return z 
 def shiftLeft( number, t):
     return [0]*t + number
 
@@ -285,3 +313,4 @@ def rshiftBits(num, bits):
         if set(result) == {0}: result = [0]
         num.number = result
         num.length = len(result)
+    

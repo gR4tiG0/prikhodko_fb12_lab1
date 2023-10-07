@@ -28,14 +28,21 @@ def main() -> None:
     print((TEST_NUMBER_B == TEST_NUMBER_A) == (B == A))
     print((TEST_NUMBER_A == TEST_NUMBER_A) == (A == A))
     print("-"*60)
-    D = A * B 
+    D = A * B
     print(D.base10() == TEST_NUMBER_A*TEST_NUMBER_B)
     print((A * B).base10() == TEST_NUMBER_A*TEST_NUMBER_B)
-    print((A**2).base10() == TEST_NUMBER_A**2)
     print("-"*60)
+    # print((A**bn(0)).base10() == TEST_NUMBER_A**0)
+    # print((A**bn(1)).base10() == TEST_NUMBER_A**1)
+    # print((A**bn(2)).base10() == TEST_NUMBER_A**2)
+    a = getrandbits(65)
+    b = getrandbits(10)
+    print((bn(a) ** bn(b)).base10() == a**b)
+    print('-'*60)
     a,b = getrandbits(BITS),getrandbits(BITS//2)
     a_,b_ = bn(a),bn(b)
     print((a_ / b_).base10() == a//b) 
     print((a_ % b_).base10() == a%b)
+    
 if __name__ == "__main__":
     main()
