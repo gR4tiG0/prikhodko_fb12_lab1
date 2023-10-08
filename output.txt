@@ -1,0 +1,39 @@
+[*] Checking the correctness of the convertion...
+A == Abn: True
+A16== Abn16: True
+A2 == Abn2: True
+[!] Convertion to common bases seeems right
+[*] Checking addition...
+Abn + Bbn == Bbn + Abn: True
+A + B == Abn + Bbn: True
+(A + B) + C == Abn + (Bbn + Cbn): True
+D + A == Dbn + Abn, where D is negative number: True
+[!] Addition seems right checking subtraction...
+Abn - Bbn == Bbn - Abn: True
+A - B == Abn - Bbn: True
+(A - B) - C == Abn - (Bbn - Cbn): True
+D -  A == Dbn - Abn, where D is negative number: True
+[!] Subtraction seems right
+[*] Checking multiplication...
+Abn - Bbn == Bbn - Abn: True
+A - B == Abn - Bbn: True
+(A - B) - C == Abn - (Bbn - Cbn): True
+Abn * 123 = Abn+Abn...+Abn times 123: True
+(Abn+Bbn)*Cbn == Abn*Cbn + Bbn*Cbn: True
+[!] Multiplication seems right
+[*] Checking division...
+Abn > Bbn: True
+Abn // Bbn == A // B: True
+Abn < Bbn: False
+Bbn // Abn == B // A: True
+Abn % Bbn == A % B: True
+[!] Division seems right
+[*] Checking power...
+base**Bbn == base**B: True
+[!] Seems right
+[*] Starting time tests
+Average addition time: 0.000000149577 seconds
+Average subtraction time: 0.000000157708 seconds
+Average multiplication time: 0.000003258695 seconds
+Average division time: 0.000000504860 seconds
+Average powering time: 0.000006867900 seconds

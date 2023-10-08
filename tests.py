@@ -1,9 +1,8 @@
 #!/usr/bin/python3
-from webbrowser import get
 from compmath.bignum import *
 from Crypto.Random.random import getrandbits
 from secrets import randbelow
-import time
+from timeit import default_timer as timer
 e_,q_,a_ = "[!]","[?]","[*]"
 
 def main() -> None:
@@ -39,11 +38,9 @@ def main() -> None:
     print(f"{e_} Multiplication seems right")
     print(f"{a_} Checking division...")
     print(f"Abn > Bbn: {Abn > Bbn}")
-    print(f"Abn // Bbn: {(Abn / Bbn).base10()}")
-    print(f"A // B: {A//B}")
+    print(f"Abn // Bbn == A // B: {(Abn / Bbn).base10() == A//B}")
     print(f"Abn < Bbn: {Abn < Bbn}")
-    print(f"Bbn // Abn: {(Bbn / Abn).base10()}")
-    print(f"B // A: {B//A}")
+    print(f"Bbn // Abn == B // A: {(Bbn / Abn).base10() == B//A}")
     print(f"Abn % Bbn == A % B: {(Abn % Bbn).base10() == A%B}")
     print(f"{e_} Division seems right")
     print(f"{a_} Checking power...")
@@ -55,44 +52,45 @@ def main() -> None:
     print(f"{a_} Starting time tests")
     r_numbers = []
     for _ in range(10001): r_numbers.append(randbelow(length))
-    start_time = time.time()
+    start_time = timer()
     for i in range(len(r_numbers)-1):
         res = r_numbers[i] + r_numbers[i+1]
-    end_time = time.time()
+    end_time = timer()
     execution_time = (end_time - start_time)/10000
     print(f"Average addition time: {execution_time:.12f} seconds")
 
-    start_time = time.time()
+    start_time = timer()
     for i in range(len(r_numbers)-1):
         res = r_numbers[i] - r_numbers[i+1]
-    end_time = time.time()
+    end_time = timer()
     execution_time = (end_time - start_time)/10000
     print(f"Average subtraction time: {execution_time:.12f} seconds")
 
-    start_time = time.time()
+    start_time = timer()
     for i in range(len(r_numbers)-1):
         res = r_numbers[i] * r_numbers[i+1]
-    end_time = time.time()
+    end_time = timer()
     execution_time = (end_time - start_time)/10000
     print(f"Average multiplication time: {execution_time:.12f} seconds")
 
-    start_time = time.time()
+    start_time = timer()
     for i in range(len(r_numbers)-1):
         res = r_numbers[i] / r_numbers[i+1]
-    end_time = time.time()
+    end_time = timer()
     execution_time = (end_time - start_time)/10000
     print(f"Average division time: {execution_time:.12f} seconds")
     
     base_l = [] 
-    for _ in range(5):base_l.append(getrandbits(4))
+    for _ in range(10):base_l.append(getrandbits(4))
     power_l = []
-    for _ in range(5): power_l.append(getrandbits(12))
-    start_time = time.time()
-    for i in range(5):
+    for _ in range(10): power_l.append(getrandbits(12))
+    start_time = timer()
+    for i in range(10):
         C = base_l[i] ** power_l[i]
-    end_time = time.time()
+    end_time = timer()
 
-    execution_time = (end_time - start_time) / 5
+    execution_time = (end_time - start_time) / 10
     print(f"Average powering time: {execution_time:.12f} seconds")
+   
 if __name__ == "__main__":
     main()
