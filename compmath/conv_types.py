@@ -27,8 +27,6 @@ def convert(number,base):
             if digit > base:
                 raise TypeError('Wrong input: List have incorrect base.')
             else:
-                # while number and number[-1] == 0:
-                #     number.pop()
                 digits = number
                 sign = 1
     elif isinstance(number,str):

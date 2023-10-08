@@ -208,9 +208,9 @@ class bn:
         if other.number == [0]:
             return None
         elif self == other:
-            return 1
+            return bn(1)
         elif self < other:
-            return 0, self
+            return bn(0), self
         else:
             B = bn(self.number)
             A = bn(other.number)
