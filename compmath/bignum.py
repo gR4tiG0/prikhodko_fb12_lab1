@@ -45,6 +45,7 @@ class bn:
             rem = mod - len(res_t) 
             res_t = "0"*rem + res_t
             res = res_t + res
+        res = res.lstrip('0')
         return res if self.sign == 1 else "-" + res
 
 
