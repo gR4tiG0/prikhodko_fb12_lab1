@@ -35,7 +35,9 @@ class bn:
         if baseN == 10:
             return self.base10()
         res = ""
+        
         for item in self.number:
+                
             res_t = ""
             while item > 0:
                 remainder = item % baseN
@@ -46,6 +48,7 @@ class bn:
             res_t = "0"*rem + res_t
             res = res_t + res
         res = res.lstrip('0')
+        if res == '': res = '0'
         return res if self.sign == 1 else "-" + res
 
 
@@ -159,20 +162,20 @@ class bn:
 
     def __mul__(self, other):
         #default multiplication
-        # result = bn(0)
-        # for c,b_d in enumerate(other.number):
-        #     tmp = self.mulStep(b_d)
-        #     tmp = shiftLeft(tmp,c)
-        #     result = result + bn(tmp)
+        result = bn(0)
+        for c,b_d in enumerate(other.number):
+            tmp = self.mulStep(b_d)
+            tmp = shiftLeft(tmp,c)
+            result = result + bn(tmp)
 
         #karatsuba variant
-        n = max(self.length,other.length)
-        if n%2 != 0: n += 1
-        a = bn(self.number + [0]*(n-self.length))
-        b = bn(other.number + [0]*(n-other.length))
+        # n = max(self.length,other.length)
+        # if n%2 != 0: n += 1
+        # a = bn(self.number + [0]*(n-self.length))
+        # b = bn(other.number + [0]*(n-other.length))
         #print(a)
         #print(b)
-        result = karatsubaStep(a,b)
+        # result = karatsubaStep(a,b)
         return result
     
 
@@ -267,6 +270,7 @@ def karatsubaStep(a,b):
         z0 = karatsubaStep(a_h,b_h)
         z2 = karatsubaStep(a_l,b_l)
         z1 = karatsubaStep(a_l,b_h) + karatsubaStep(a_h,b_l)
+        z1 = karatsubaStep(a_l+a_h,b_l+b_h) - z0 - z2
         z0_f = bn(shiftLeft(z0.number,n))
         z1_f = bn(shiftLeft(z1.number,m))
 
