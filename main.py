@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from compmath.bignum import *
 from Crypto.Random.random import getrandbits
-BITS = 2048
+BITS = 1024
 
 BASE_POWER = 16
 TEST_NUMBER_A = getrandbits(BITS)
@@ -29,6 +29,10 @@ def main() -> None:
     print((TEST_NUMBER_A == TEST_NUMBER_A) == (A == A))
     print("-"*60)
     D = A * B
+    if D.base10() != TEST_NUMBER_A*TEST_NUMBER_B:
+        print(A,B)
+        print(D)
+        print(bn(TEST_NUMBER_B*TEST_NUMBER_A))
     print(D.base10() == TEST_NUMBER_A*TEST_NUMBER_B)
     print((A * B).base10() == TEST_NUMBER_A*TEST_NUMBER_B)
     print("-"*60)

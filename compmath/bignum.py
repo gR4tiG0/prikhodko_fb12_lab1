@@ -1,8 +1,10 @@
 from compmath.conv_types import *
 from math import log
+import sys
 BASE = 2
 BASE_POWER = 64 
 HEX_DIGITS = "0123456789ABCDEF"
+sys.setrecursionlimit(5000)
 
 class bn:
     """init class for operations with large numbers"""
@@ -142,7 +144,13 @@ class bn:
             return True
 
     def __eq__(self,other):
-        if self.number == other.number:
+        s_n = [i for i in self.number] 
+        o_n = [i for i in other.number]
+        while s_n[-1] == 0 and len(s_n) > 1:
+            s_n.pop()
+        while o_n[-1] == 0 and len(o_n) > 1:
+            o_n.pop()
+        if s_n == o_n:
             return True
         else: 
             return False
@@ -162,20 +170,27 @@ class bn:
 
     def __mul__(self, other):
         #default multiplication
-        result = bn(0)
-        for c,b_d in enumerate(other.number):
-            tmp = self.mulStep(b_d)
-            tmp = shiftLeft(tmp,c)
-            result = result + bn(tmp)
+        # result = bn(0)
+        # for c,b_d in enumerate(other.number):
+            # tmp = self.mulStep(b_d)
+            # tmp = shiftLeft(tmp,c)
+            # result = result + bn(tmp)
 
         #karatsuba variant
-        # n = max(self.length,other.length)
-        # if n%2 != 0: n += 1
-        # a = bn(self.number + [0]*(n-self.length))
-        # b = bn(other.number + [0]*(n-other.length))
+        n = max(self.length,other.length)
+        if n == 1: n = 0
+        if n%2 != 0: n += 1
+        a = bn(self.number + [0]*(n-self.length))
+        b = bn(other.number + [0]*(n-other.length))
+        # while (a.number[-1] == 0 and len(a.number) > 1) and (b.number[-1] == 0 and len(b.number) > 1):
+        #     a.number.pop()
+        #     b.number.pop()
+        #     a.length -= 1
+        #     b.length -= 1
         #print(a)
         #print(b)
-        # result = karatsubaStep(a,b)
+        #print(a,b)
+        result = karatsubaStep(a,b)
         return result
     
 
@@ -214,6 +229,8 @@ class bn:
             return bn(1)
         elif self < other:
             return bn(0), self
+        elif other == bn(1):
+            return self, bn(0)
         else:
             B = bn(self.number)
             A = bn(other.number)
@@ -267,13 +284,27 @@ def karatsubaStep(a,b):
         b = b.number
         a_l,a_h = bn(a[:m]),bn(a[m:])
         b_l,b_h = bn(b[:m]),bn(b[m:])
-        z0 = karatsubaStep(a_h,b_h)
-        z2 = karatsubaStep(a_l,b_l)
-        z1 = karatsubaStep(a_l,b_h) + karatsubaStep(a_h,b_l)
-        z1 = karatsubaStep(a_l+a_h,b_l+b_h) - z0 - z2
+        z0 = a_h*b_h
+        z2 = a_l*b_l
+        z1_ = bn(a_l.base10()*b_h.base10() + a_h.base10()*b_l.base10())
+        #z1 = karatsubaStep(a_l+a_h,b_l+b_h) - z0 - z2
+        t1 = (a_l+a_h)*(b_l+b_h)
+        t1_ = (a_l+a_h).base10() *(b_l+b_h).base10()
+        t2 = t1 - z0
+        t2_ = t1_ - z0.base10()
+        z1 =  t2 - z2
+        # print(f"Checking mul t1: {t1.base10() == t1_}")
+        # print((a_l+a_h),(b_l+b_h))
+        # print(f"Checking sub t2: {t2.base10() == t2_}")
+        # print(f"Checling sub2 t3: {z1.base10() == (t2_ - z2.base10())}")
+        #print(z1_ == z1)
+        #print(z1_.base10() == z1.base10())
+        #print(z1,"|",z1_)
         z0_f = bn(shiftLeft(z0.number,n))
         z1_f = bn(shiftLeft(z1.number,m))
-
+        #print(z0_f)
+        #print(z1_f)
+        #print(z2)
         z = z0_f + z1_f + z2
         return z 
 def shiftLeft( number, t):
@@ -318,4 +349,35 @@ def rshiftBits(num, bits):
         if set(result) == {0}: result = [0]
         num.number = result
         num.length = len(result)
-    
+
+def evenC(num):
+    if num.number[0] % 2 == 0:
+        return True
+    return False
+
+
+def gcd(a:bn,b:bn):
+    a_ = bn(list(a.number))
+    b_ = bn(list(b.number))
+    return gcd_C(a_,b_)
+
+def gcd_C(a:bn,b:bn) -> bn:
+    if b == bn(0):
+        return a
+    d = 0
+    while evenC(a) and evenC(b):
+        rshiftBits(a,1)
+        rshiftBits(b,1)
+        d += 1
+    while evenC(a):
+        rshiftBits(a,1)
+    while evenC(b):
+        rshiftBits(b,1)
+    if a > b: min = b 
+    else: min = a 
+    res = gcd_C(min,bn((a - b).number))
+    lshiftBits(res,d)
+    return res
+
+def lcm(a:bn,b:bn) -> bn:
+    return a*b / gcd(a,b)
