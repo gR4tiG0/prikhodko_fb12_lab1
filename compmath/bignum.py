@@ -381,3 +381,25 @@ def gcd_C(a:bn,b:bn) -> bn:
 
 def lcm(a:bn,b:bn) -> bn:
     return a*b / gcd(a,b)
+
+
+
+class GF:
+    """Galois Field for working in finite field, integers mod N"""
+    def __init__(self,mod):
+        global MOD 
+        MOD = mod
+        self.mod = mod
+        
+    def __call__(self, bignumber):
+        return GFElement(bignumber)
+    
+
+class GFElement(bn):
+    """Class for elements of GF"""
+    def __init__(self,number):
+        super().__init__(number.number)
+    
+    def __add__(self,other):
+        result = super().__add__(other)
+        return result.base10()%MOD
