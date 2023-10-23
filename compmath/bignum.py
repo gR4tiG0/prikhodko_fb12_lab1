@@ -1,5 +1,5 @@
 from compmath.conv_types import *
-from math import log
+from math import log, isqrt
 import sys
 BASE = 2
 BASE_POWER = 64 
@@ -226,7 +226,7 @@ class bn:
         if other.number == [0]:
             return None
         elif self == other:
-            return bn(1)
+            return bn(1),bn(0)
         elif self < other:
             return bn(0), self
         elif other == bn(1):
@@ -379,6 +379,8 @@ def gcd_C(a:bn,b:bn) -> bn:
     lshiftBits(res,d)
     return res
 
+
+
 def lcm(a:bn,b:bn) -> bn:
     return a*b / gcd(a,b)
 
@@ -387,19 +389,85 @@ def lcm(a:bn,b:bn) -> bn:
 class GF:
     """Galois Field for working in finite field, integers mod N"""
     def __init__(self,mod):
-        global MOD 
-        MOD = mod
+        global MOD,MU,K,R  
+        MOD = bn(mod)
         self.mod = mod
+        K = MOD.length 
+        MU = bn((BASE**BASE_POWER)**(2*K))/MOD
+        R = bn(BASE**(BASE_POWER*K))
         
     def __call__(self, bignumber):
         return GFElement(bignumber)
     
+def barrettReduction(a,mod=None):
+    if isinstance(mod,type(None)): mod = MOD
+    if mod < bn(a.base):
+        return bn(a.number[0]%mod.number[0])
+    number = bn(list(a.number))
+    for _ in range(K-1):
+        number.length -= 1
+        number.number.pop(0)
+    number *= MU
+    for _ in range(K+1):
+        number.length -= 1
+        number.number.pop(0)
+    r = a - number * mod
+    while r >= mod:
+        r -= mod
+    return r
+
+
 
 class GFElement(bn):
     """Class for elements of GF"""
     def __init__(self,number):
         super().__init__(number.number)
+        
     
     def __add__(self,other):
-        result = super().__add__(other)
-        return result.base10()%MOD
+        result = super().__add__(GFElement(other))
+        return GFElement(barrettReduction(result))
+    
+    def __sub__(self,other):
+        result = super().__sub__(GFElement(other))
+        return GFElement(barrettReduction(result))
+    
+    def __div__(self,other):
+        pass
+
+    def __mul__(self,other):
+        #return blakley(self,other)
+        result = super().__mul__(GFElement(other))
+        return GFElement(barrettReduction(result))
+    
+    def __pow__(self,power):
+        if power == bn(0):
+            return bn(1)
+        elif power == bn(1):
+            return self
+        elif power == bn(2):
+            return self.__mul__(self)
+        else:
+            A,B,C = bn(self.number),bn(power.number),bn(1)
+            D = [A]
+            b_2 = B.baseN(2)
+            b_2 = b_2[b_2.find('1'):]
+            #print(b_2)
+            for i in range(1,len(b_2),1):
+                #print(f"prev: {D[i-1].base10()}")
+                D.append(barrettReduction(D[i-1] * D[i-1]))
+            #for i in D: print(i.base10())
+            for c,i in enumerate(b_2[::-1]):
+                if i == '1': 
+                    C = C * D[c]
+                    C = barrettReduction(C)
+            return GFElement(C)
+        
+def blakley(a,b):
+    R = bn(0)
+    for digit in a.number:
+        for i in bin(digit)[2:][::-1]:
+            if i == "0": R = bn(2)*R
+            elif i == "1": R = bn(2)*R + b
+            R = barrettReduction(R)
+    return R

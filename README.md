@@ -12,8 +12,8 @@ tasks:
   8.    Power of N                  |   Done
   9.    Convertion to hex and big   |   Done
   10.   GCM,LCM                     |   Done
-  11.   Modular operations          | 
-  11.1  Modular Addition            |
-  11.2  Modular Subtraction         |
-  11.3  Modular Multiplication      |
-  11.4  Modular Power               |
+  11.   Modular operations          |   Done
+  11.1  Modular Addition            |   Done
+  11.2  Modular Subtraction         |   Done
+  11.3  Modular Multiplication      |   Done
+  11.4  Modular Power               |   Done
