@@ -80,13 +80,10 @@ class bn:
         self_D = list(self.digits + [0]*(n-self.length))
         other_D = list(other.digits + [0]*(n-other.length))
         size = max(len(other_D),len(self_D))
-        print(len(other_D),len(self_D))
-        print(size)
         self_c = (ctypes.c_uint64 * size)(*self_D)
         other_c = (ctypes.c_uint64 * size)(*other_D)
         result_c = (ctypes.c_uint64 * (size*2))()
-        nblib.bn_mul(result_c,self_c,other_c,size)
-        print(f"bn res {list(result_c)}")
+        nblib.bn_kMul(result_c,self_c,other_c,size)
         return bn(list(result_c))
 
     def __ge__(self,other):
