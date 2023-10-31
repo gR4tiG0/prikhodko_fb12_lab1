@@ -108,7 +108,8 @@ extern "C" {
         // prArr(num1,size);
         // prArr(num2,size);
         if (size == 1) {
-            mul(result,num1,num2,size);
+            // mul(result,num1,num2,size);
+            mulScal(result,num1,num2[0],size);
             // printf("returning\n");
             // prArr(result,size*2);
         } else {
