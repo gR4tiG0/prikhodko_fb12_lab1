@@ -2,7 +2,7 @@ import ctypes
 from . import bnTypes
 BASE = 2
 BASE_POWER = 64
-nblib = ctypes.CDLL('/home/gratigo/Documents/term5/SROM/lab1_/compmath/bnMath.so')
+nblib = ctypes.CDLL('/home/gratigo/Documents/term5/SROM/lab1/prikhodko_fb12_lab1/reworkLab1-2/compmath/bnMath.so')
 def compare(a,b):
     a_D = list(a.digits)
     b_D = list(b.digits)    
@@ -77,14 +77,16 @@ class bn:
     def __mul__(self,other):
         n = max(self.length,other.length)
         if n == 1: n = 0
-        if n%2 != 0: n += 1
         self_D = list(self.digits + [0]*(n-self.length))
         other_D = list(other.digits + [0]*(n-other.length))
         size = max(len(other_D),len(self_D))
+        print(len(other_D),len(self_D))
+        print(size)
         self_c = (ctypes.c_uint64 * size)(*self_D)
         other_c = (ctypes.c_uint64 * size)(*other_D)
-        result_c = (ctypes.c_uint64 * (size*2))() 
+        result_c = (ctypes.c_uint64 * (size*2))()
         nblib.bn_mul(result_c,self_c,other_c,size)
+        print(f"bn res {list(result_c)}")
         return bn(list(result_c))
 
     def __ge__(self,other):

@@ -1,0 +1,98 @@
+ uint64_t* bn_kMul(uint64_t* num1, uint64_t* num2, int size){
+        if (size == 1) {
+            uint64_t* result = new uint64_t[size*2]();
+            mul(result,num1,num2,size);
+            return result;
+        } else {
+            int m = size/2;
+            int n = size - m;
+            uint64_t* a_l = new uint64_t[n+1]();
+            uint64_t* b_l = new uint64_t[n+1]();
+            uint64_t* a_h = new uint64_t[n+1]();
+            uint64_t* b_h = new uint64_t[n+1]();
+
+            for (int i = 0; i < m; i++){
+                a_l[i] = num1[i];
+                b_l[i] = num2[i];
+            }
+            for (int i = m; i < size; i++) {
+                a_h[i-m] = num1[i];
+                b_h[i-m] = num2[i];
+            }
+            printf("ablh,m=%i, n=%i\n",m,n);
+            prArr(a_l,n+1);
+            prArr(b_l,n+1);
+            prArr(a_h,n+1);
+            prArr(b_h,n+1);
+            uint64_t* z2 = new uint64_t[m*2]();
+            uint64_t* z0 = new uint64_t[n*2]();
+            z0 = bn_kMul(a_h,b_h,n);
+            z2 = bn_kMul(a_l,b_l,m);
+            uint64_t* sum_a = new uint64_t[n+1]();
+            uint64_t* sum_b = new uint64_t[n+1]();
+            bn_add(sum_a,a_l,a_h,n+1);
+            bn_add(sum_b,b_l,b_h,n+1);
+            printf("suma,b,m=%i, n=%i\n",m,n);
+            prArr(sum_a,n+1);
+            prArr(sum_b,n+1);
+            int sT = n+1;
+            if (sum_a[n] == 0 && sum_b[n] == 0) sT = n;
+            printf("sT: %i, n: %i\n",sT,n);
+            uint64_t* tmp = new uint64_t[(sT)*2]();
+            uint64_t* sub = new uint64_t[(sT)*2]();
+            uint64_t* z1 = new uint64_t[(sT)*2]();
+            uint64_t* z0_s = new uint64_t[(sT)*2]();
+            uint64_t* z2_s = new uint64_t[(sT)*2]();
+            tmp = bn_kMul(sum_a,sum_b,sT);
+            for (int i = 0; i < sT*2; i++){
+                if (i < m*2)
+                    z2_s[i] = z2[i];
+                else z2_s[i] = 0;
+                printf("%lu ",z2_s[i]);
+            }
+            printf("\n");
+            for (int i = 0; i < sT*2; i++){
+                if (i < n*2)
+                    z0_s[i] = z0[i];
+                else z0_s[i] = 0;
+                printf("%i:%i:%i:%lu ",n*2,sT*2,i,z0_s[i]);
+            }
+            printf("\n");
+
+            printf("z0\n");
+            prArr(z0,sT*2);
+            printf("z2\n");
+            prArr(z2,sT*2);
+            printf("tmp\n");
+            //prArr(tmp,sT*2);
+            bn_sub(sub,tmp,z0_s,sT);
+            printf("sub\n");
+            //prArr(sub,sT*2);
+            bn_sub(z1,sub,z2_s,sT);
+            printf("z1\n");
+            //prArr(z1,sT*2);
+            uint64_t* f2 = new uint64_t[size*2]();
+            uint64_t* f1 = new uint64_t[size*2]();
+            uint64_t* f0 = new uint64_t[size*2]();
+            for (int i = 0; i < sT*2; i++){
+                f2[i] = z2_s[i];
+                f1[i] = z1[i];
+                f0[i] = z0_s[i];
+            }
+            printf("Before shifting\n");
+            prArr(f0,size*2);
+            prArr(f1,size*2);
+            prArr(f2,size*2);
+            printf("Shifting\n");
+            shiftLeft(f0,m*2,size*2);
+            shiftLeft(f1,m,size*2);
+            prArr(f0,size*2);
+            prArr(f1,size*2);
+            prArr(f2,size*2);
+            uint64_t* res = new uint64_t[size*2]();
+            uint64_t* sum = new uint64_t[size*2]();
+            bn_add(sum,f0,f1,size*2);
+            bn_add(res,sum,f2,size*2);
+            return res;
+        }
+    }

@@ -1,1 +1,1 @@
-g++ -shared -o math.so -fPIC math.cpp
+g++ -shared -o bnMath.so -fPIC math.cpp
