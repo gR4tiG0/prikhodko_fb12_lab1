@@ -206,6 +206,7 @@ extern "C" {
 
             // printf("returtning res\n");
             // prArr(result,size*2);
+            delete space;
         }
     }
 
