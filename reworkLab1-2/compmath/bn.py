@@ -95,47 +95,63 @@ class bn:
         while len(result) > 1 and result[-1] == 0:
             result.pop()
         self.digits = result
-
-    def divMod(self,other):
+    
+    def rshB(self):
+        self_D = list(self.digits+[0])
+        size = len(self_D)
+        self_c = (ctypes.c_uint64 * size)(*self_D)
+        nblib.rshiftB(self_c,size)
+        result = list(self_c)
+        while len(result) > 1 and result[-1] == 0:
+            result.pop()
+        self.digits = result
+        
+    
+    def __truediv__(self,other):
         if other.digits == [0]:
             return None
         elif self == other:
-            return bn(1),bn(0)
+            return bn(1)
         elif self < other:
-            return bn(0), self
+            return bn(0)
         elif other == bn(1):
-            return self, bn(0)
+            return self
         else:
-            B = bn(self.digits)
-            A = bn(other.digits)
-            c = 1 
-            while A.base10() <= B.base10():
-                A.lshB()
-                c = c << 1
-            c = c >> 1
-            res = bn(0)
-            A.rshift(1)
-            c = bn(c)
-            while not (c == bn(0)):
-                if B.base10() >= A.base10():
-                    B = B - A
-                    res = res + c
-                c.rshift(1)
-                A.rshift(1)
-            return res,B
-
-    def lshift(self,bits):
-        lshiftBits(self,bits)
-    
-    def rshift(self, bits):
-        rshiftBits(self,bits)
-    
-    def __truediv__(self,other):
-        return self.divMod(other)[0]
-
+            self_D = list(self.digits)
+            other_D = list(other.digits)    
+            size = max(len(other_D),len(self_D))+1
+            self_c = (ctypes.c_uint64 * size)(*self_D)
+            other_c = (ctypes.c_uint64 * size)(*other_D)
+            result_c = (ctypes.c_uint64 * size)()
+            reminder_c = (ctypes.c_uint64 * size)()
+            nblib.bn_div(result_c, reminder_c, self_c, other_c, size)
+            result = list(result_c) 
+            while len(result) > 1 and result[-1] == 0:
+                result.pop()
+            return bn(result)
 
     def __mod__(self,other):
-        return self.divMod(other)[1]
+        if other.digits == [0]:
+            return None
+        elif self == other:
+            return bn(0)
+        elif self < other:
+            return self
+        elif other == bn(1):
+            return bn(0)
+        else:
+            self_D = list(self.digits)
+            other_D = list(other.digits)    
+            size = max(len(other_D),len(self_D))+1
+            self_c = (ctypes.c_uint64 * size)(*self_D)
+            other_c = (ctypes.c_uint64 * size)(*other_D)
+            result_c = (ctypes.c_uint64 * size)()
+            reminder_c = (ctypes.c_uint64 * size)()
+            nblib.bn_div(result_c, reminder_c, self_c, other_c, size)
+            reminder = list(reminder_c) 
+            while len(reminder) > 1 and reminder[-1] == 0:
+                reminder.pop()
+            return bn(reminder)
 
     def __ge__(self,other):
         print(self.length,other.length)
@@ -145,6 +161,13 @@ class bn:
             return self.length == max(self.length,other.length)
 
     def __le__(self,other):
+        # self_D = list(self.digits)
+        # other_D = list(other.digits)    
+        # size = max(len(other_D),len(self_D))
+        # self_c = (ctypes.c_uint64 * size)(*self_D)
+        # other_c = (ctypes.c_uint64 * size)(*other_D)
+        # res = nblib.bn_le(self_c,other_c,size)
+        # return res == 1
         if self.length == other.length:
             return not compare(other,self)
         else:
@@ -207,39 +230,3 @@ class bn:
 
 
 
-
-def lshiftBits(num,bits):
-    word = num.bp 
-    b_words = bits // word 
-    b_shift = bits % word
-    if b_words != 0:
-        num.digits = [0]*b_words + num.digits
-        num.length += b_words
-    if b_shift != 0:
-        result = num.digits + [0]
-        num.length += 1
-        for i in range(num.length-1,0,-1):
-            curr = (result[i] << b_shift) & ((1 << (64)) - 1)
-            result[i] = curr | (result[i-1] >> (word - b_shift))
-        result[0] = (result[0] << b_shift) & ((1 << (word)) - 1)
-        if set(result) == {0}: result = [0]
-        num.digits = result
-        num.length = len(result)
-
-def rshiftBits(num, bits):
-    word = num.bp
-    b_words = bits // word
-    b_shift = bits % word
-    if b_words != 0:
-        num.digits = num.digits[b_words:] + [0]*b_words
-        if num.digits == []: num.digits = [0]
-
-    if b_shift != 0:
-        result = num.digits
-        for i in range(num.length-1):
-            prev = result[i+1] & ((1 << b_shift) - 1)
-            result[i] = (result[i] >> b_shift) | (prev << (word - b_shift))
-        result[-1] = result[-1] >> b_shift
-        if set(result) == {0}: result = [0]
-        num.digits = result
-        num.length = len(result)

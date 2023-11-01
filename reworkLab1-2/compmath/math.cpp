@@ -143,5 +143,51 @@ extern "C" {
         }
         number[0] <<= 1;
     }
-
+    void rshiftB(uint64_t* number, int size) {
+        for (int i = 0; i < size - 1; i++) {
+            number[i] = (number[i] >> 1) | (number[i+1] << ((8*64) - 1));
+        }
+        number[size-1] >>= 1;
+    }
+    bool bn_le(uint64_t* num1, uint64_t* num2, int size) {
+        do {
+            size -= 1;
+            if (num1[size] > num2[size]) return false;
+            else if (num1[size] < num2[size]) return true;
+        } while (size != 0);
+        return true;
+    }
+    bool bn_isZero(uint64_t* number, int size) {
+        for (int i = 0; i < size; i++) {
+            if (number[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    void bn_div(uint64_t* result, uint64_t* reminder, uint64_t* num1, uint64_t* num2, int size) {
+        uint64_t* c = new uint64_t[size]();
+        c[0] = 1;
+        while (bn_le(num2,num1,size)){
+            lshiftB(num2,size);
+            lshiftB(c,size);
+            // printf("\nnum1: ");
+            // prArr(num1,size);
+            // printf("num2: ");
+            // prArr(num2,size);
+        }
+        // prArr(c,size);
+        // prArr(num2, size);
+        rshiftB(c,size);
+        rshiftB(num2,size);
+        while (!bn_isZero(c,size)) {
+            if (bn_le(num2,num1,size)){
+                bn_sub(num1,num1,num2,size);
+                bn_add(result,result,c,size);
+            }
+            rshiftB(c,size);
+            rshiftB(num2,size);
+        }
+        memcpy(reminder,num1,size*sizeof(uint64_t));
+    }
 }
