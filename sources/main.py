@@ -13,7 +13,6 @@ def main() -> None:
     print((A+B*C)*C == ((a+b*c)*c).base10()) 
     print((A//C+B*C)*C == ((a/c+b*c)*c).base10()) 
     print(C*(A//C+B*C) - A**2//B == (c*(a/c+b*c) - a**bn(2)/b).base10()) 
-    print((C*(A//C+B*C) - A**2//B)%C//(A-B) == ((c*(a/c+b*c) - a**bn(2)/b) % c/(a-b)).base10()) 
     print(C**3 == (c**bn(3)).base10())
     # nums = []
     # for _ in range(1000):

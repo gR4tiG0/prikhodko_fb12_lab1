@@ -3,7 +3,7 @@ from . import bnTypes
 import sys
 BASE = 2
 BASE_POWER = 64
-nblib = ctypes.CDLL('/home/gratigo/Documents/term5/SROM/lab1/prikhodko_fb12_lab1/sources/compmath/bnMath.so')
+nblib = ctypes.CDLL('compmath/bnMath.so')
 def compare(a,b):
     a_D = list(a.digits)
     b_D = list(b.digits)    
