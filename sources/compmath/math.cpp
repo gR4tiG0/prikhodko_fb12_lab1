@@ -235,6 +235,27 @@ extern "C" {
                 // printf("res\n");
                 // prArr(result,size1);
     }
-
-
+    bool evenC(uint64_t* number) {
+        if (number[0] % 2 == 0) {
+            return true;
+        }
+        return false;
+    }
+    void bn_gcd(uint64_t* result, uint64_t* num1, uint64_t* num2, int size) {
+        if (bn_isZero(num2,size)) {
+            memcpy(result,num1,size*sizeof(uint64_t));
+            // printf("result\n");
+            // prArr(result,size);
+        } else {
+            uint64_t* rem = new uint64_t[size];
+            uint64_t* tmp = new uint64_t[size];
+            uint64_t* save = new uint64_t[size];
+            memcpy(save,num2,size*sizeof(uint64_t));
+            bn_div(tmp,rem,num1,num2,size);
+            // prArr(rem,size);
+            // prArr(save,size);
+            bn_gcd(result,save,rem,size);
+            delete rem,tmp;
+        }
+    }
 }

@@ -1,19 +1,32 @@
 import ctypes
 from . import bnTypes
-import sys
+
 BASE = 2
 BASE_POWER = 64
 nblib = ctypes.CDLL('compmath/bnMath.so')
+
+
 def compare(a,b):
     a_D = list(a.digits)
     b_D = list(b.digits)    
-    size = max(len(b_D),len(a_D))
-    a_c = (ctypes.c_uint64 * size)(*a_D)
-    b_c = (ctypes.c_uint64 * size)(*b_D)
-    result_c = (ctypes.c_uint64 * size)() 
-    borrow = 0
-    borrow = nblib.bn_sub(result_c,a_c,b_c,size)
-    return borrow != 0
+    # size = max(len(b_D),len(a_D))
+    # a_c = (ctypes.c_uint64 * size)(*a_D)
+    # b_c = (ctypes.c_uint64 * size)(*b_D)
+    # result_c = (ctypes.c_uint64 * size)() 
+    # borrow = 0
+    # borrow = nblib.bn_sub(result_c,a_c,b_c,size)
+    for i in range(a.length):
+        if a_D[i] > b_D[i]:
+            return True
+        elif a_D[i] < b_D[i]:
+            return False
+    return True
+
+def conv(number,baset):
+    result = []
+    for i in number:
+        result += bnTypes.getDigits(i,baset)[::-1]
+    return result
 
 class bn:
     def __init__(self,number,sign=0):
@@ -174,9 +187,10 @@ class bn:
             return bn(list(result_c))
 
     def __ge__(self,other):
-        print(self.length,other.length)
+        #print(self.length,other.length)
+        if self.__eq__(other): return True
         if self.length == other.length:
-            return not compare(self,other)
+            return compare(self,other)
         else:
             return self.length == max(self.length,other.length)
 
@@ -188,8 +202,9 @@ class bn:
         # other_c = (ctypes.c_uint64 * size)(*other_D)
         # res = nblib.bn_le(self_c,other_c,size)
         # return res == 1
+        if self.__eq__(other): return True
         if self.length == other.length:
-            return not compare(other,self)
+            return not compare(self,other)
         else:
             return self.length == min(self.length,other.length)
 
@@ -247,10 +262,57 @@ class bn:
         res = res.lstrip('0')
         if res == '': res = '0'
         return res if self.sign == 1 else "-" + res
+    
+    def evenC(self):
+        if self.digits[0] % 2 == 0:
+            return True
+        return False
 
-def conv(number,baset):
-    result = []
-    for i in number:
-        result += bnTypes.getDigits(i,baset)[::-1]
-    return result
+def gcd(a,b):
+    a_D = list(a.digits)
+    b_D = list(b.digits)
+    size = max(len(a_D),len(b_D))
+    a_c = (ctypes.c_uint64 * size)(*a_D)
+    b_c = (ctypes.c_uint64 * size)(*b_D)
+    result_c = (ctypes.c_uint64 * size)()
+    nblib.bn_gcd(result_c, a_c, b_c, size)
+    return bn(list(result_c))
 
+
+class Ring:
+    """Ring class for working in finite field, integers mod nonprime N"""
+    def __init__(self,mod):
+        global MOD,MU,K,R
+        MOD = bn(mod)
+        self.mod = mod
+        K = MOD.length
+        MU = bn((BASE**BASE_POWER)**(2*K))/MOD
+        R = bn(BASE**(BASE_POWER*K))
+    
+    def __call__(self,number):
+        return RingElement(number)
+
+class RingElement(bn):
+    """Class for elements of Ring"""
+    def __init__(self,number):
+        super().__init__(barrettReduction(number).digits)
+
+    
+
+
+def barrettReduction(a,mod=None):
+    if isinstance(mod,type(None)): mod = MOD
+    if mod < bn(a.base):
+        return bn(a.digits[0]%mod.digits[0])
+    number = bn(list(a.digits))
+    for _ in range(K-1):
+        number.length -= 1
+        number.digits.pop(0)
+    number *= MU
+    for _ in range(K+1):
+        number.length -= 1
+        number.digits.pop(0)
+    r = a - number * mod
+    while r.__le__(mod):
+        r -= mod
+    return r
