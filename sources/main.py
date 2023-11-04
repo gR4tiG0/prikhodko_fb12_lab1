@@ -5,18 +5,26 @@ from timeit import default_timer as timer
 from secrets import randbelow
 import math
 import sys
-BITS = 1024
+BITS = 2048
 def main() -> None:
-    A,B = getrandbits(BITS)*2,getrandbits(BITS)*2
+    A,B,C = getrandbits(BITS),-1*getrandbits(BITS),getrandbits(BITS//8)
     a,b = bn(A),bn(B)
-    # print(A%B)
-    # R = Ring(B)
-    # a = R(a)
-    # print(a.base10())
-    print(A,B)
-    print("gcd",math.gcd(A,B))
-    print("Gcd",gcd(a,b).base10())
-
+    R = Ring(C)
+    a = R(a)
+    print((A+B)%C == (a+b).base10())
+    print((A-B)%C == (a-b).base10())
+    print((A*B)%C == (a*b).base10())
+    print((B**2)%C == (R(b)**bn(2)).base10())
+    # print(A,B)
+    # print("gcd",math.gcd(A,B))
+    # print("Gcd",gcd(a,b).base10())
+    # start_time = timer()
+    # for i in range(1000):
+    #     A,B = getrandbits(BITS),getrandbits(BITS)
+    #     gcd(bn(A),bn(B))
+    # end_time = timer()
+    # wbntime = end_time-start_time
+    # print(f"{wbntime/1000:.12f}")
 
 
 

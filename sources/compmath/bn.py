@@ -90,6 +90,7 @@ class bn:
 
     def __mul__(self,other):
         n = max(self.length,other.length)
+        sign = self.sign * other.sign
         if n == 1: n = 0
         self_D = list(self.digits + [0]*(n-self.length))
         other_D = list(other.digits + [0]*(n-other.length))
@@ -98,7 +99,7 @@ class bn:
         other_c = (ctypes.c_uint64 * size)(*other_D)
         result_c = (ctypes.c_uint64 * (size*2))()
         nblib.bn_kMul(result_c,self_c,other_c,size)
-        return bn(list(result_c))
+        return bn(list(result_c),sign)
 
     def lshB(self):
         self_D = list(self.digits+[0])
@@ -253,7 +254,7 @@ class bn:
             res_t = ""
             while item > 0:
                 remainder = item % baseN
-                res_t = HEX_DIGITS[remainder] + res_t
+                res_t = bnTypes.HEX_DIGITS[remainder] + res_t
                 item = item // baseN
             mod = (self.Bp // int(log(baseN,BASE)))
             rem = mod - len(res_t) 
@@ -269,14 +270,39 @@ class bn:
         return False
 
 def gcd(a,b):
-    a_D = list(a.digits)
-    b_D = list(b.digits)
-    size = max(len(a_D),len(b_D))
-    a_c = (ctypes.c_uint64 * size)(*a_D)
-    b_c = (ctypes.c_uint64 * size)(*b_D)
-    result_c = (ctypes.c_uint64 * size)()
-    nblib.bn_gcd(result_c, a_c, b_c, size)
-    return bn(list(result_c))
+    if a > b:
+        a_D = list(a.digits)
+        b_D = list(b.digits)
+        size = max(len(a_D),len(b_D))+1
+        a_c = (ctypes.c_uint64 * size)(*a_D)
+        b_c = (ctypes.c_uint64 * size)(*b_D)
+        result_c = (ctypes.c_uint64 * size)()
+        nblib.bn_gcd(result_c, a_c, b_c, size)
+        return bn(list(result_c))
+    else:
+        return gcd(b,a)
+
+
+def lcm(a,b):
+    return a*b / gcd(a,b)
+
+
+
+# def xgcd(a,b):
+#     if a > b:
+#         a_D = list(a.digits)
+#         b_D = list(b.digits)
+#         size = max(len(a_D),len(b_D))+1
+#         a_c = (ctypes.c_uint64 * size)(*a_D)
+#         b_c = (ctypes.c_uint64 * size)(*b_D)
+#         result_c = (ctypes.c_uint64 * size)()
+#         x = (ctypes.c_uint64 * size)()
+#         y = (ctypes.c_uint64 * size)()
+#         nblib.bn_gcd(result_c, a_c, b_c, size,x,y)
+#         return bn(list(result_c)),bn(x),bn(y)
+#     else:
+#         return xgcd(b,a)
+    
 
 
 class Ring:
@@ -295,10 +321,30 @@ class Ring:
 class RingElement(bn):
     """Class for elements of Ring"""
     def __init__(self,number):
-        super().__init__(barrettReduction(number).digits)
+        res = number%MOD
+        super().__init__(res.digits,number.sign)
 
+    def __add__(self,other):
+        result = super().__add__(RingElement(other))
+        if result.sign == -1:
+            result += MOD
+            result.sign = 1
+        return RingElement(result)
     
+    def __sub__(self,other):
+        result = super().__sub__(RingElement(other))
+        if result.sign == -1:
+            result += MOD
+            result.sign = 1
+        return RingElement(result)
 
+    def __mul__(self,other):
+        result = super().__mul__(RingElement(other))
+        result = RingElement(result)
+        if result.sign == -1:
+            result += MOD
+            result.sign = 1
+        return result
 
 def barrettReduction(a,mod=None):
     if isinstance(mod,type(None)): mod = MOD
