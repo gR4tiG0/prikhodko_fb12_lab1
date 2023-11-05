@@ -265,7 +265,8 @@ class bn:
                 remainder = item % baseN
                 res_t = bnTypes.HEX_DIGITS[remainder] + res_t
                 item = item // baseN
-            mod = (self.Bp // int(log(baseN,BASE)))
+            from math import log
+            mod = (self.bp // int(log(baseN,BASE)))
             rem = mod - len(res_t) 
             res_t = "0"*rem + res_t
             res = res_t + res
