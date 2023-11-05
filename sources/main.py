@@ -7,10 +7,12 @@ import math
 import sys
 BITS = 2048
 def main() -> None:
-    A,B,C = getrandbits(BITS),-1*getrandbits(BITS),getrandbits(BITS//8)
+    A,B,C = getrandbits(BITS),getrandbits(BITS),getrandbits(BITS//2)#4346908715 ,1910260801 ,8577061170#
+    #print(A%C,B,C)
     a,b = bn(A),bn(B)
     R = Ring(C)
     a = R(a)
+    print((a**b).base10() == pow(A,B,C))
     print((A+B)%C == (a+b).base10())
     print((A-B)%C == (a-b).base10())
     print((A*B)%C == (a*b).base10())

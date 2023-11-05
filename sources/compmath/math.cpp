@@ -259,28 +259,5 @@ extern "C" {
             delete rem,tmp;
         }
     }
-    void bn_xgcd(uint64_t* result, uint64_t* num1, uint64_t* num2, int size, uint64_t* x, uint64_t* y) {
-        if (bn_isZero(num2,size)) {
-            memcpy(result,num1,size*sizeof(uint64_t));
-            x[0] = 0;
-            y[0] = 1;
-            // printf("result\n");
-            // prArr(result,size);
-        } else {
-            uint64_t* rem = new uint64_t[size];
-            uint64_t* tmp = new uint64_t[size];
-            uint64_t* mul = new uint64_t[size];
-            uint64_t* yTmp = new uint64_t[size];
-            uint64_t* save = new uint64_t[size];
-            memcpy(save,num2,size*sizeof(uint64_t));
-            bn_div(tmp,rem,num1,num2,size);
-            // prArr(rem,size);
-            // prArr(save,size);
-            bn_xgcd(result,save,rem,size,y,yTmp);
-            // prArr(result,size);
-            bn_kMul(mul,tmp,y,size);
-            bn_sub(x,yTmp,mul,size);
-            delete rem,tmp,yTmp,mul;
-        }
-    }
+    
 }

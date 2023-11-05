@@ -25,7 +25,8 @@ def compare(a,b):
 def conv(number,baset):
     result = []
     for i in number:
-        result += bnTypes.getDigits(i,baset)[::-1]
+        tmp = bnTypes.getDigits(i,baset)[::-1]
+        result = [0]*(BASE_POWER-len(tmp))+tmp+result
     return result
 
 class bn:
@@ -345,11 +346,37 @@ class RingElement(bn):
             result += MOD
             result.sign = 1
         return result
+    
+    def __pow__(self,other):
+        #print(self,other)
+        if other == bn(0):
+            return bn(1)
+        elif other == bn(1):
+            return self
+        elif other == bn(2):
+            return self.__mul__(self)
+        else:
+            A = bn(self.digits)
+            other_D = list(other.digits)
+            other_b = conv(other_D,2)[::-1]
+            #print(other_b)
+            while len(other_b)>1 and other_b[-1] == 0:
+                other_b.pop()
+            #print(other_b)
+            result = bn(1)
+            for i in other_b:
+                if i == 1:
+                    result = (result*A)%MOD#barrettReduction(result*A)
+                #print(A,(A*A).base10(),end=" ")
+                A = (A*A)%MOD#barrettReduction(A*A)
+                #print(A.base10())
+            return RingElement(result)
+            
 
 def barrettReduction(a,mod=None):
     if isinstance(mod,type(None)): mod = MOD
-    if mod < bn(a.base):
-        return bn(a.digits[0]%mod.digits[0])
+    # if mod < bn(a.base):
+    #     return a%mod
     number = bn(list(a.digits))
     for _ in range(K-1):
         number.length -= 1
@@ -359,6 +386,7 @@ def barrettReduction(a,mod=None):
         number.length -= 1
         number.digits.pop(0)
     r = a - number * mod
-    while r.__le__(mod):
+    #print(r.base10())
+    while r.__ge__(mod):
         r -= mod
     return r
