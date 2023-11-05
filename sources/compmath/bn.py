@@ -15,7 +15,7 @@ def compare(a,b):
     # result_c = (ctypes.c_uint64 * size)() 
     # borrow = 0
     # borrow = nblib.bn_sub(result_c,a_c,b_c,size)
-    for i in range(a.length):
+    for i in range(a.length-1,-1,-1):
         if a_D[i] > b_D[i]:
             return True
         elif a_D[i] < b_D[i]:
@@ -85,8 +85,14 @@ class bn:
         borrow = nblib.bn_sub(result_c,self_c,other_c,size)
         if borrow != 0:
             nblib.bn_sub(result_c,other_c,self_c,size)
-            return bn(list(result_c),-1)
-        return bn(list(result_c))
+            result_c = list(result_c)
+            while len(result_c) > 1 and result_c[-1] == 0:
+                result_c.pop()
+            return bn(result_c,-1)
+        result_c = list(result_c)
+        while len(result_c) > 1 and result_c[-1] == 0:
+                result_c.pop()
+        return bn(result_c)
 
 
     def __mul__(self,other):
@@ -192,8 +198,10 @@ class bn:
         #print(self.length,other.length)
         if self.__eq__(other): return True
         if self.length == other.length:
-            return compare(self,other)
+            # print("we are in same length compare is called")
+            return  compare(self,other)
         else:
+            # print("length is different - higher wins")
             return self.length == max(self.length,other.length)
 
     def __le__(self,other):
@@ -315,7 +323,9 @@ class Ring:
         K = MOD.length
         MU = bn((BASE**BASE_POWER)**(2*K))/MOD
         R = bn(BASE**(BASE_POWER*K))
-    
+        # print("choose k:", (BASE**BASE_POWER)**K > mod )
+        # print("My MU",MU.base10())
+        # print("Calc MU",((BASE**BASE_POWER)**(2*K))//mod)
     def __call__(self,number):
         return RingElement(number)
 
@@ -348,7 +358,7 @@ class RingElement(bn):
         return result
     
     def __pow__(self,other):
-        #print(self,other)
+        # print(self,other)
         if other == bn(0):
             return bn(1)
         elif other == bn(1):
@@ -356,20 +366,25 @@ class RingElement(bn):
         elif other == bn(2):
             return self.__mul__(self)
         else:
+            # print("here")
             A = bn(self.digits)
             other_D = list(other.digits)
             other_b = conv(other_D,2)[::-1]
-            #print(other_b)
+            # print(other_b)
             while len(other_b)>1 and other_b[-1] == 0:
                 other_b.pop()
-            #print(other_b)
+            # print(other_b)
             result = bn(1)
             for i in other_b:
                 if i == 1:
-                    result = (result*A)%MOD#barrettReduction(result*A)
-                #print(A,(A*A).base10(),end=" ")
-                A = (A*A)%MOD#barrettReduction(A*A)
-                #print(A.base10())
+                    # print(i)
+                    # print(result,A,MOD)
+                    result = barrettReduction(result*A)#(result*A)%MOD#barrettReduction(result*A)
+                    # print("result adter b",result)
+                # print("A",A)
+                A = barrettReduction(A*A)#(A*A)%MOD#barrettReduction(A*A)
+                # print("A after barret",A)
+            # print(result)
             return RingElement(result)
             
 
@@ -378,15 +393,21 @@ def barrettReduction(a,mod=None):
     # if mod < bn(a.base):
     #     return a%mod
     number = bn(list(a.digits))
-    for _ in range(K-1):
+    number = number * MU
+    for _ in range(2*K):
         number.length -= 1
         number.digits.pop(0)
-    number *= MU
-    for _ in range(K+1):
-        number.length -= 1
-        number.digits.pop(0)
+    # for _ in range(K+1):
+    #     number.length -= 1
+    #     number.digits.pop(0)
     r = a - number * mod
-    #print(r.base10())
-    while r.__ge__(mod):
+    # print("r:",r,"mod:",mod)
+    # print(r.base10() > mod.base10())
+    # print(r.base10(),mod.base10())
+    # print(r > mod)
+    # print(r-mod-mod > mod)
+    while r >= mod:
+        #print(r, mod)
+        # print("stuck here")
         r -= mod
     return r
